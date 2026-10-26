@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Accréditation V.I.P</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{--a:#DC0000;--b:#fff;--c:#111;--bg:#0b0b0d;font-family:"Arial Narrow","Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:#0b0b0d;color:#fff;overflow-x:hidden}
+button,input,select{font:inherit}
+.hd{font-weight:900;font-style:italic;text-transform:uppercase;letter-spacing:.02em}
+.view{display:none;min-height:100%}.view.on{display:block}
+/* SCAN */
+#scan{position:relative;height:100%;overflow:hidden;background:radial-gradient(ellipse at 50% 0,#2a0d12,#0b0b0d 65%)}
+#scan.on{display:flex;flex-direction:column;align-items:center;padding:env(safe-area-inset-top) 0 0}
+.bar{width:100%;display:flex;justify-content:space-between;align-items:center;padding:14px 28px;border-bottom:3px solid #e10600;background:#000}
+.bar b{font-size:20px}.cnt{font-size:34px;color:#fff}.cnt small{font-size:14px;color:#aaa;font-style:normal;margin-right:8px}
+.bar a{color:#555;font-size:13px;text-decoration:none;padding:8px}
+.idle{margin-top:3vh;text-align:center;padding:0 20px}
+.idle h1{font-size:clamp(34px,7vw,84px);line-height:.95;min-height:2em}
+.idle p{color:#9aa;margin-top:10px;font-size:clamp(14px,2vw,22px);letter-spacing:.3em}
+.cam{position:relative;margin-top:3vh;width:min(78vw,52vh);aspect-ratio:1;background:#000;border:1px solid #333;overflow:hidden}
+.cam video{width:100%;height:100%;object-fit:cover}
+.cam i{position:absolute;width:15%;height:15%;border:5px solid #e10600}
+.cam i:nth-of-type(1){top:8px;left:8px;border-right:0;border-bottom:0}.cam i:nth-of-type(2){top:8px;right:8px;border-left:0;border-bottom:0}
+.cam i:nth-of-type(3){bottom:8px;left:8px;border-right:0;border-top:0}.cam i:nth-of-type(4){bottom:8px;right:8px;border-left:0;border-top:0}
+.cam:after{content:"";position:absolute;left:8%;right:8%;height:2px;background:#e10600;box-shadow:0 0 14px #e10600;animation:sweep 2.2s ease-in-out infinite alternate}
+@keyframes sweep{from{top:12%}to{top:88%}}
+.start{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:#000d}
+.btn{background:#e10600;color:#fff;border:0;padding:14px 26px;font-weight:900;font-style:italic;text-transform:uppercase;cursor:pointer;border-radius:2px}
+.btn.g{background:#2a2a30}.btn.s{padding:7px 12px;font-size:13px}.btn.r{background:#7a1a1a}
+.manual{margin:2vh 0;display:flex;gap:8px}
+.manual input{background:#15151a;border:1px solid #333;color:#fff;padding:12px;width:260px}
+/* RESULT */
+#res{position:fixed;inset:0;z-index:20;display:none;overflow:hidden;color:#fff;background:radial-gradient(circle at 15% 0,var(--a),transparent 55%),var(--bg);padding:6vh 7vw;flex-direction:column;justify-content:space-between}
+#res.on{display:flex}
+#res .big{position:absolute;right:-3vw;bottom:-9vw;font-size:55vw;line-height:1;font-weight:900;font-style:italic;color:var(--b);opacity:.1;pointer-events:none}
+#res .sweep{position:absolute;top:0;bottom:0;width:30vw;left:-40vw;background:linear-gradient(100deg,transparent,#fff5,transparent);animation:sw 1s .15s ease-out forwards}
+@keyframes sw{to{left:120vw}}
+#res>*{position:relative}
+#res .stripes{height:14px;background:linear-gradient(90deg,var(--a) 0 40%,var(--b) 40% 60%,var(--c) 60%);margin-bottom:2vh;animation:grow .6s ease-out}
+@keyframes grow{from{transform:scaleX(0);transform-origin:left}}
+.team{font-size:clamp(22px,4.5vw,52px)}.vip{letter-spacing:.35em;font-size:clamp(14px,2.2vw,26px);color:var(--b);opacity:.85;font-weight:700;font-style:normal}
+.nm{font-size:clamp(46px,12vw,170px);line-height:.92;animation:pop .5s .1s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes pop{from{transform:translateY(30px) scale(.9);opacity:0}}
+.num{font-size:clamp(70px,22vw,280px);line-height:.85;color:var(--a);-webkit-text-stroke:2px var(--b);text-shadow:0 0 40px #0008}
+.row{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.badge{display:inline-flex;gap:14px;align-items:center;padding:14px 30px;font-size:clamp(22px,4vw,48px);background:#0b8f3f;color:#fff;animation:pulse 1.2s infinite alternate}
+@keyframes pulse{from{box-shadow:0 0 0 0 #1fe06a88}to{box-shadow:0 0 40px 8px #1fe06a66}}
+#res[data-k=dup]{background:radial-gradient(circle at 15% 0,#c77d00,transparent 55%),#1a1000}
+#res[data-k=dup] .badge{background:#d98a00;animation:none}
+#res[data-k=no]{background:radial-gradient(circle at 50% 40%,#a00,#200 75%)}
+#res[data-k=no] .badge{background:#e10600;animation:none}
+.tm{font-size:clamp(16px,2.6vw,30px)}
+.hint{font-size:13px;opacity:.6;text-align:center}
+/* ADMIN */
+.pg{max-width:1100px;margin:0 auto;padding:22px 18px 80px}
+.pg h1{font-size:30px;margin-bottom:14px}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+table{width:100%;border-collapse:collapse}th,td{padding:10px 8px;border-bottom:1px solid #26262c;text-align:left;font-size:15px}th{color:#889;font-weight:600}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+td .btn{margin:2px}.chip{display:inline-block;width:6px;height:18px;vertical-align:middle;margin-right:8px}
+.modal{position:fixed;inset:0;background:#000c;z-index:30;display:none;align-items:center;justify-content:center;padding:16px}.modal.on{display:flex}
+.box{background:#15151a;border:1px solid #333;padding:22px;width:min(420px,100%);display:grid;gap:10px;text-align:center}
+.box label{text-align:left;font-size:13px;color:#99a}
+.box input,.box select{width:100%;background:#0b0b0d;border:1px solid #333;color:#fff;padding:11px}
+/* CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;padding:0 18px 40px;max-width:1100px;margin:auto}
+.card{position:relative;width:100%;aspect-ratio:3/4.3;background:#fff;color:#111;overflow:hidden;border-radius:10px;display:flex;flex-direction:column;border:1px solid #bbb;break-inside:avoid}
+.card .top{background:linear-gradient(120deg,var(--a),var(--c));color:var(--b);padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start}
+.card .top b{font-size:22px;line-height:1}.card .top span{font-size:11px;letter-spacing:.3em;font-weight:700}
+.card .mid{padding:12px 16px 0;flex:1}.card .n{font-size:84px;line-height:.9;color:var(--a);-webkit-text-stroke:1px #111}
+.card .nm2{font-size:30px;line-height:1;margin-top:6px}.card .qr{padding:0 16px 10px;display:flex;align-items:flex-end;justify-content:space-between}
+.card .qr img{width:44%;image-rendering:pixelated}.card .qr small{font-size:9px;color:#666;text-align:right;line-height:1.5}
+.card .bot{height:34px;background:#111;color:#fff;font-size:11px;letter-spacing:.35em;display:flex;align-items:center;justify-content:center;border-top:6px solid var(--a)}
+@media print{body{background:#fff}.noprint{display:none!important}.cards{grid-template-columns:1fr 1fr;gap:6mm;padding:0}.card{border:1px solid #000;border-radius:0}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style></head>
+<body>
+
+<section id="scan" class="view on">
+ <div class="bar"><b class="hd">FIA · Contrôle d’accès</b><div class="cnt hd"><small>ENTRÉS</small><span id="cnt">0/0</span></div><a href="#/admin">Admin</a></div>
+ <div class="idle"><h1 class="hd" id="idle">Bienvenue à l’anniversaire V.I.P d’Anatole</h1><p id="idle2">PRÉSENTEZ VOTRE ACCRÉDITATION</p></div>
+ <div class="cam"><video id="vid" playsinline muted></video><i></i><i></i><i></i><i></i>
+  <div class="start" id="start"><button class="btn" id="go">Activer la caméra</button></div></div>
+ <div class="manual"><input id="man" placeholder="Code manuel (secours)" autocapitalize="characters"><button class="btn g" id="manb">Valider</button><button class="btn g" id="flip">Caméra selfie</button></div>
+ <div id="st" style="color:#889;font-size:14px;text-align:center;padding:0 16px"></div>
+</section>
+
+<div id="res"><div class="sweep"></div><div class="big" id="rbig"></div>
+ <div><div class="stripes"></div><div class="team hd" id="rteam"></div><div class="vip" id="rvip">INVITÉ V.I.P</div></div>
+ <div><div class="nm hd" id="rname"></div><div class="num hd" id="rnum"></div></div>
+ <div class="row"><div class="badge hd" id="rbadge"></div><div class="tm" id="rtm"></div></div>
+ <div class="hint">Touchez l’écran pour revenir au scan</div></div>
+
+<section id="admin" class="view"><div class="pg">
+ <h1 class="hd">Organisateur</h1>
+ <div id="stats" style="color:#9aa"></div>
+ <div class="tools noprint">
+  <button class="btn s" id="add">+ Invité</button><a class="btn s g" style="text-decoration:none" href="#/cards">Cartes à imprimer</a>
+  <a class="btn s g" style="text-decoration:none" href="#/scan">Écran de scan</a>
+  <button class="btn s g" id="exp">Exporter sauvegarde</button><button class="btn s g" id="imp">Importer</button>
+  <button class="btn s g" id="pin">Changer le PIN</button><button class="btn s r" id="clr">Remise à zéro des passages</button>
+  <input type="file" id="file" accept=".json" hidden></div>
+ <div style="overflow-x:auto"><table><thead><tr><th>Écurie</th><th>Pilote</th><th>N°</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="tb"></tbody></table></div>
+</div></section>
+
+<section id="cardsv" class="view"><div class="pg noprint"><h1 class="hd">Cartes d’accréditation</h1>
+ <div class="tools"><button class="btn s" onclick="print()">Imprimer</button><a class="btn s g" style="text-decoration:none" href="#/admin">Retour admin</a></div>
+ <p style="color:#99a">Astuce : impression A4, 4 cartes par feuille, sans marges.</p></div>
+ <div class="cards" id="cards"></div></section>
+
+<div class="modal" id="m1"><div class="box"><h2 class="hd" id="m1t">Invité</h2>
+ <label>Prénom<input id="f1"></label><label>Nom de famille (à compléter plus tard)<input id="f2"></label>
+ <label>Écurie<select id="f3"></select></label><label>Numéro de pilote<input id="f4" type="number" min="0" max="999"></label>
+ <div style="display:flex;gap:8px;justify-content:center"><button class="btn" id="fs">Enregistrer</button><button class="btn g" id="fc">Annuler</button></div></div></div>
+<div class="modal" id="m3" style="z-index:40"><div class="box"><p id="m3t"></p><input id="m3i" type="password" inputmode="numeric" style="display:none"><div style="display:flex;gap:8px;justify-content:center"><button class="btn" id="m3ok">OK</button><button class="btn g" id="m3no">Annuler</button></div></div></div>
+<div class="modal" id="m2"><div class="box"><h2 class="hd" id="m2t"></h2><img id="m2i" style="width:100%;background:#fff;padding:10px"><code id="m2c" style="color:#9aa"></code><button class="btn g" id="m2x">Fermer</button></div></div>
+
+<script>
+const T={
+ ferrari:{n:'Scuderia Ferrari',c:['#FF2800','#FFFFFF','#111111','#1b0505']},
+ redbull:{n:'Red Bull Racing',c:['#0641B8','#FFC906','#DB0A40','#08122b']},
+ mclaren:{n:'McLaren',c:['#FF751F','#FFFFFF','#111111','#1a0f03']},
+ mercedes:{n:'Mercedes-AMG Petronas',c:['#27F4D2','#C6CBCF','#111111','#07100f']},
+ alpine:{n:'BWT Alpine',c:['#2173B8','#FF87BC','#FFFFFF','#050e1c']}};
+const SEED=[['Théo','ferrari',8,'PDK-7KQ3M9XWB4TD'],['Léa','ferrari',6,'PDK-H2RFN8VC6YJA'],['Anatole','redbull',54,'PDK-X5PZ4GDK9E3W'],['Olivia','redbull',14,'PDK-M8CWT2LQ7NHB'],['Zeline','mclaren',5,'PDK-3VYJ6RKD9AXF'],['Kyara','mclaren',4,'PDK-ZB9N4QWE2HMS'],['Léna','mercedes',15,'PDK-K6TD8XPC3RGV'],['Louise','mercedes',9,'PDK-W4HJ7NYB5EQM'],['Warren','alpine',33,'PDK-C9LX2FSA8KZT'],['Julie','alpine',18,'PDK-R3GQ6VMH4DWP']];
+const K='paddock_f1_v1';const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function uid(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r=crypto.getRandomValues(new Uint8Array(12));return 'PDK-'+[...r].map(x=>a[x%a.length]).join('')}
+function load(){try{const d=JSON.parse(localStorage.getItem(K));if(d&&d.guests){SEED.forEach(([f,t,n,i,l])=>{const g=d.guests.find(x=>x.id===i);if(g&&l&&!g.last)g.last=l});return d}}catch(e){}
+ const d={pin:'1234',guests:SEED.map(([f,t,n,i,l])=>({id:i,first:f,last:l||'',team:t,num:n})),scans:{}};save(d);return d}
+function save(d){try{localStorage.setItem(K,JSON.stringify(d))}catch(e){alert('Sauvegarde impossible : stockage du navigateur indisponible.')}}
+let D=load();
+window.alert=m=>{ask(String(m))};
+function ask(msg,input){return new Promise(res=>{$('m3t').textContent=msg;const i=$('m3i');i.style.display=input?'block':'none';i.value='';$('m3').classList.add('on');if(input)i.focus();$('m3ok').onclick=()=>{$('m3').classList.remove('on');res(input?i.value:true)};$('m3no').onclick=()=>{$('m3').classList.remove('on');res(input?null:false)}})}
+const fmt=ts=>new Date(ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+const fullName=g=>(g.first+' '+(g.last||'')).trim();
+function theme(el,team){const t=T[team]||T.ferrari;['--a','--b','--c','--bg'].forEach((v,i)=>el.style.setProperty(v,t.c[i]))}
+function qrUrl(id,cell){const q=qrcode(0,'L');q.addData(id);q.make();return q.createDataURL(cell||8,4)}
+function entered(){return D.guests.filter(g=>D.scans[g.id]).length}
+function updCnt(){$('cnt').textContent=entered()+'/'+D.guests.length}
+
+/* ---- Router ---- */
+function route(){const h=location.hash.replace('#/','')||'scan';
+ if(h==='admin'&&!unlocked){ask('Code PIN organisateur',true).then(p=>{if(p===D.pin){unlocked=true;route()}else{if(p!==null)alert('PIN incorrect');location.hash='#/scan'}});return}
+ ['scan','admin','cardsv'].forEach(v=>$(v).classList.toggle('on',v===(h==='cards'?'cardsv':h)));
+ if(h==='scan'){updCnt();camOn&&loop()}else{stopCam()}
+ if(h==='admin')renderAdmin();if(h==='cards')renderCards()}
+let unlocked=false;
+function unlock(){if(unlocked)return true;const p=prompt('Code PIN organisateur');if(p===D.pin){unlocked=true;return true}if(p!==null)alert('PIN incorrect');return false}
+addEventListener('hashchange',route);
+
+/* ---- Scan ---- */
+const MSG=[['Bienvenue à l’anniversaire V.I.P d’Anatole','PRÉSENTEZ VOTRE ACCRÉDITATION']];
+let mi=0;setInterval(()=>{mi=(mi+1)%MSG.length;$('idle').textContent=MSG[mi][0];$('idle2').textContent=MSG[mi][1]},3800);
+let stream=null,camOn=false,locked=false,cool=0,hideT=null;let facing='environment';
+function ensureQR(){if(window.jsQR)return Promise.resolve(true);const u=['https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js','https://unpkg.com/jsqr@1.4.0/dist/jsQR.js','https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js'];return u.reduce((p,s)=>p.then(ok=>(ok||window.jsQR)?true:new Promise(r=>{const e=document.createElement('script');e.src=s;e.onload=()=>r(!!window.jsQR);e.onerror=()=>r(false);document.head.appendChild(e)})),Promise.resolve(false))}
+const vid=$('vid'),cv=document.createElement('canvas'),cx=cv.getContext('2d',{willReadFrequently:true});
+$('go').onclick=async()=>{try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:1280}},audio:false});
+ vid.srcObject=stream;await vid.play();camOn=true;$('start').style.display='none';$('st').textContent='Chargement du scanner…';ensureQR().then(ok=>{$('st').textContent=ok?'Scanner actif : présentez un QR code à 30 cm.':'Bibliothèque de scan introuvable : vérifiez Internet, désactivez le bloqueur de contenu, puis rechargez.'});loop()}
+ catch(e){$('go').textContent='Caméra refusée — voir Réglages > Safari > Caméra';}};
+function stopCam(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}camOn=false;$('start').style.display='flex';$('go').textContent='Activer la caméra'}
+$('flip').onclick=()=>{facing=facing==='user'?'environment':'user';$('flip').textContent=facing==='user'?'Caméra arrière':'Caméra selfie';vid.style.transform=facing==='user'?'scaleX(-1)':'';if(camOn){stream.getTracks().forEach(t=>t.stop());stream=null;camOn=false;$('go').onclick()}};
+function loop(){if(!camOn||!$('scan').classList.contains('on'))return;
+ if(!locked&&Date.now()>cool&&vid.videoWidth&&window.jsQR){const s=Math.min(1,960/vid.videoWidth);cv.width=vid.videoWidth*s;cv.height=vid.videoHeight*s;
+  cx.drawImage(vid,0,0,cv.width,cv.height);const im=cx.getImageData(0,0,cv.width,cv.height);
+  const r=jsQR(im.data,im.width,im.height,{inversionAttempts:'attemptBoth'});if(r&&r.data)process(r.data.trim())}
+ requestAnimationFrame(loop)}
+function process(code){D=load();const g=D.guests.find(x=>x.id===code);
+ if(!g)return show('no',null,code);
+ if(D.scans[g.id])return show('dup',g,D.scans[g.id]);
+ D.scans[g.id]=Date.now();save(D);show('ok',g,D.scans[g.id])}
+$('manb').onclick=()=>{const v=$('man').value.trim().toUpperCase();if(v){process(v);$('man').value=''}};
+$('man').onkeydown=e=>{if(e.key==='Enter')$('manb').click()};
+function show(k,g,ts){locked=true;const r=$('res');r.dataset.k=k;
+ if(g)theme(r,g.team);else{['--a','--b','--c','--bg'].forEach(v=>r.style.removeProperty(v))}
+ const t=g&&T[g.team];
+ $('rteam').textContent=g?t.n:'FIA — CONTRÔLE D’ACCÈS';
+ $('rvip').textContent=g?'INVITÉ V.I.P':'ACCRÉDITATION INCONNUE';
+ $('rname').innerHTML=g?esc(g.first)+(g.last?'<br>'+esc(g.last):''):'QR CODE<br>INCONNU';
+ $('rnum').textContent=g?'#'+g.num:'✕';$('rbig').textContent=g?g.num:'';
+ $('rbadge').innerHTML=k==='ok'?'✔ ACCÈS AUTORISÉ':k==='dup'?'⚠ DÉJÀ ENREGISTRÉ':'⛔ ACCÈS NON AUTORISÉ';
+ $('rtm').innerHTML=k==='ok'?'ENTRÉE ENREGISTRÉE<br>'+fmt(ts)+' · '+entered()+'/'+D.guests.length+' dans le paddock':k==='dup'?'Premier passage à '+fmt(ts):'Code lu : '+esc(ts||'')+'<br>Aucun invité ne correspond à ce code';
+ r.classList.remove('on');void r.offsetWidth;r.classList.add('on');
+ clearTimeout(hideT);hideT=setTimeout(hide,k==='ok'?6000:7000);updCnt();
+ try{navigator.vibrate&&navigator.vibrate(k==='ok'?80:[80,60,80])}catch(e){}}
+function hide(){$('res').classList.remove('on');locked=false;cool=Date.now()+1500;clearTimeout(hideT)}
+$('res').onclick=hide;
+
+/* ---- Admin ---- */
+function renderAdmin(){D=load();$('stats').textContent=entered()+' entrés · '+(D.guests.length-entered())+' pas encore arrivés · '+D.guests.length+' invités';
+ $('tb').innerHTML=D.guests.map(g=>{const t=T[g.team],ts=D.scans[g.id];
+  return `<tr><td><span class="chip" style="background:${t.c[0]}"></span>${esc(t.n)}</td><td>${esc(fullName(g))}${g.last?'':' <small style="color:#778">(nom à compléter)</small>'}</td><td>${g.num}</td>
+  <td>${ts?`<span class="dot" style="background:#1fe06a"></span>Entré ${fmt(ts)}`:`<span class="dot" style="background:#667"></span>Absent`}</td>
+  <td><button class="btn s g" data-a="edit" data-i="${g.id}">Modifier</button><button class="btn s g" data-a="qr" data-i="${g.id}">QR</button>${ts?`<button class="btn s g" data-a="rst" data-i="${g.id}">Réinit. passage</button>`:''}<button class="btn s g" data-a="regen" data-i="${g.id}">Régénérer QR</button><button class="btn s r" data-a="del" data-i="${g.id}">✕</button></td></tr>`}).join('')}
+$('tb').onclick=e=>{const b=e.target.closest('button');if(!b)return;const id=b.dataset.i,g=D.guests.find(x=>x.id===id);
+ if(b.dataset.a==='edit')form(g);
+ if(b.dataset.a==='qr'){$('m2t').textContent=fullName(g)+' · #'+g.num;$('m2i').src=qrUrl(g.id,10);$('m2c').textContent=g.id;$('m2').classList.add('on')}
+ const act=(m,fn)=>ask(m).then(ok=>{if(ok){fn();save(D);renderAdmin()}});
+ if(b.dataset.a==='rst')act('Réinitialiser le passage de '+g.first+' ?',()=>{delete D.scans[id]});
+ if(b.dataset.a==='regen')act('Régénérer le QR de '+g.first+' ? L’ancien QR deviendra invalide.',()=>{delete D.scans[id];g.id=uid()});
+ if(b.dataset.a==='del')act('Supprimer '+g.first+' ?',()=>{D.guests=D.guests.filter(x=>x.id!==id);delete D.scans[id]})};
+$('m2x').onclick=()=>$('m2').classList.remove('on');
+$('f3').innerHTML=Object.entries(T).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('');
+let editId=null;
+function form(g){editId=g?g.id:null;$('m1t').textContent=g?'Modifier l’invité':'Nouvel invité';
+ $('f1').value=g?g.first:'';$('f2').value=g?g.last:'';$('f3').value=g?g.team:'ferrari';$('f4').value=g?g.num:'';$('m1').classList.add('on')}
+$('add').onclick=()=>form(null);$('fc').onclick=()=>$('m1').classList.remove('on');
+$('fs').onclick=()=>{const f=$('f1').value.trim(),n=parseInt($('f4').value,10);if(!f||isNaN(n))return alert('Prénom et numéro obligatoires.');
+ if(editId){const g=D.guests.find(x=>x.id===editId);Object.assign(g,{first:f,last:$('f2').value.trim(),team:$('f3').value,num:n})}
+ else D.guests.push({id:uid(),first:f,last:$('f2').value.trim(),team:$('f3').value,num:n});
+ save(D);$('m1').classList.remove('on');renderAdmin()};
+$('clr').onclick=()=>ask('Remettre TOUS les passages à zéro ?').then(ok=>{if(ok){D.scans={};save(D);renderAdmin()}});
+$('pin').onclick=()=>ask('Nouveau PIN (4 chiffres minimum)',true).then(p=>{if(p&&p.length>=4){D.pin=p;save(D);alert('PIN modifié.')}});
+$('exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,1)],{type:'application/json'}));a.download='paddock-sauvegarde.json';a.click()};
+$('imp').onclick=()=>$('file').click();
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.guests||!d.scans)throw 0;D=d;save(D);renderAdmin();alert('Sauvegarde importée.')}catch(x){alert('Fichier invalide.')}};r.readAsText(f)};
+
+/* ---- Cartes ---- */
+function renderCards(){D=load();$('cards').innerHTML=D.guests.map(g=>{const t=T[g.team];
+ return `<div class="card" style="--a:${t.c[0]};--b:${t.c[1]};--c:${t.c[2]==='#FFFFFF'?'#0090FF':t.c[2]}">
+ <div class="top"><b class="hd">${esc(t.n)}</b><span>INVITÉ V.I.P</span></div>
+ <div class="mid"><div class="n hd">${g.num}</div><div class="nm2 hd">${esc(g.first)}<br>${esc(g.last||'')}</div></div>
+ <div class="qr"><img src="${qrUrl(g.id,6)}"><small>TOUTES ZONES<br>ACCRÉDITATION PERSONNELLE<br>${esc(g.id)}</small></div>
+ <div class="bot">GRAND PRIX · PASS INVITÉ</div></div>`}).join('')}
+
+if(!window.qrcode)setTimeout(()=>alert('Bibliothèques QR non chargées : connexion Internet requise au premier chargement.'),800);
+route();
+</script>
+</body></html>
